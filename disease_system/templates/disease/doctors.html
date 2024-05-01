@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <header>
+            <h2>Список усіх лікарів</h2>
+    </header>
+
+        <p>
+            {% for doctor in doctors %}
+                <p>{{ doctor.first_name }} {{ doctor.last_name }}</p>
+            {% endfor %}
+        </p>
+        <br>
+{% endblock %}

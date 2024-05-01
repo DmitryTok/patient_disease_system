@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+
+    {% if user.is_authenticated %}
+    <h1>Ви вже ввійшли в систему!</h1>
+
+    {% else %}
+        <div class="col-md-6 offset-md-3">
+        <h1>Увійти</h1>
+        <br/>
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+
+        <div class="mb-3">
+
+            <input type="text" class="form-control" name="username" placeholder="Ім'я користувача">
+
+        </div>
+        <div class="mb-3">
+
+            <input type="password" class="form-control" name="password" placeholder="Пароль">
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-success">Увійти</button>
+        </form>
+
+        </div>
+
+    {% endif %}
+{% endblock %}

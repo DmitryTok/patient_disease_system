@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from disease.models import Note
@@ -19,7 +19,7 @@ def note_details(request: HttpRequest) -> HttpResponse:
 
 
 @login_required(login_url='login')
-def note_create(request: HttpRequest) -> HttpResponse:
+def note_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     note_form = NoteForm(request.POST or None)
     if request.method == 'POST':
         if note_form.is_valid():
@@ -39,10 +39,38 @@ def note_create(request: HttpRequest) -> HttpResponse:
 
 
 @login_required(login_url='login')
-def note_edit(request: HttpRequest) -> HttpResponse:
-    pass
+def note_edit(request: HttpRequest, note_id: int) -> HttpResponse:
+    is_edit = True
+    note = get_object_or_404(Note, pk=note_id)
+
+    if request.method == 'POST':
+        note_form = NoteForm(request.POST, instance=note)
+        if note_form.is_valid():
+            note = note_form.save(commit=False)
+            note.user = request.user
+            note.doctor = note_form.cleaned_data['doctor']
+            messages.success(
+                request,
+                ('Ви успішно оновили запис!'),
+            )
+            return redirect('profile', request.user.id)
+    else:
+        note_form = NoteForm(instance=note)
+    context = {'note_form': note_form, 'is_edit': is_edit}
+    return render(request, 'disease/note/note_create.html', context)
 
 
 @login_required(login_url='login')
-def note_delete(request: HttpRequest) -> HttpResponse:
-    pass
+def note_delete(
+    request: HttpRequest, note_id: int
+) -> HttpResponse | HttpResponseRedirect:
+    note = get_object_or_404(Note, pk=note_id)
+    if request.user.id == note.user.id:
+        note.delete()
+        messages.success(request, ('Запис успішно видалено!'))
+        return redirect('profile', request.user.id)
+    else:
+        messages.error(
+            request, ('Ви не можете видалити запис іншого користувача!')
+        )
+        return redirect('profile', request.user.id)

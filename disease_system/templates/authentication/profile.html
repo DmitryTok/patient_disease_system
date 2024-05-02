@@ -8,5 +8,5 @@
         <h2>Вага: {{ patient.weight }}</h2>
     </header>
         <a href="{% url 'patient_notes' request.user.id %}" class="btn btn-outline-primary">Мої Записи</a>
-        <a href="#" class="btn btn-outline-primary">Мої Рецепти</a>
+        <a href="{% url 'patient_recipes' request.user.id %}" class="btn btn-outline-primary">Мої Рецепти</a>
 {% endblock %}

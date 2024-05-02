@@ -7,13 +7,10 @@ from disease.forms import RecipeForm
 
 
 @login_required(login_url='login')
-def patient_recipes(request: HttpRequest) -> HttpResponse:
-    pass
-
-
-@login_required(login_url='login')
-def recipe_detail(request: HttpRequest) -> HttpResponse:
-    pass
+def patient_recipes(request: HttpRequest, user_id: int) -> HttpResponse:
+    recipes = Recipe.objects.filter(user__id=user_id)
+    context = {'recipes': recipes}
+    return render(request, 'disease/recipe/recipe_patient.html', context)
 
 
 @login_required(login_url='login')
@@ -29,7 +26,7 @@ def recipe_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
                 request,
                 ('Ви успішно створили новий рецепт!'),
             )
-        return redirect('index')
+        return redirect('profile', request.user.id)
     else:
         recipe_form = RecipeForm()
     context = {'recipe_form': recipe_form}
@@ -40,6 +37,7 @@ def recipe_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
 def recipe_edit(
     request: HttpRequest, recipe_id: int
 ) -> HttpResponse | HttpResponseRedirect:
+    is_edit = True
     recipe = get_object_or_404(Recipe, pk=recipe_id)
 
     if request.method == 'POST':
@@ -52,13 +50,22 @@ def recipe_edit(
                 request,
                 ('Ви успішно оновили рецепт!'),
             )
-            return redirect('index')
+            return redirect('profile', request.user.id)
     else:
         recipe_form = RecipeForm(instance=recipe)
-    context = {'recipe_form': recipe_form}
-    return render(request, 'disease/recipe/recipe_edit.html', context)
+    context = {'recipe_form': recipe_form, 'is_edit': is_edit}
+    return render(request, 'disease/recipe/recipe_create.html', context)
 
 
 @login_required(login_url='login')
-def recipe_delete(request: HttpRequest) -> HttpResponse:
-    pass
+def recipe_delete(request: HttpRequest, recipe_id: int) -> HttpResponse:
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    if request.user.id == recipe.user.id:
+        recipe.delete()
+        messages.success(request, ('Рецепт успішно видалено!'))
+        return redirect('profile', request.user.id)
+    else:
+        messages.error(
+            request, ('Ви не можете видалити рецепт іншого користувача!')
+        )
+        return redirect('profile', request.user.id)

@@ -8,6 +8,10 @@
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         {{ recipe_form.as_p }}
-        <button type="submit" class="btn btn-success">Створити</button>
+        {% if is_edit %}
+            <button type="submit" class="btn btn-success">Редагувати</button>
+        {% else %}
+            <button type="submit" class="btn btn-success">Створити</button>
+        {% endif %}
     </form>
 {% endblock %}

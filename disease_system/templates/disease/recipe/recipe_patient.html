@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <header>
+        <h2>Мої Рецепти</h2>
+    </header>
+    {% for recipe in recipes %}
+        <p>
+            <b>Ліки</b>: {{ recipe.pill }}
+            <br>
+            <b>Дата виписки рецепта</b>: {{ recipe.date_discharge|date:"d/m/Y" }}
+            <br>
+            <b>Лікар</b>: {{ recipe.doctor }}
+            <br>
+            {% if request.user.id == recipe.user.id %}
+                <a href="{% url 'recipe_edit' recipe.id %}" class="btn btn-outline-warning">Редагувати</a>
+                <a href="{% url 'recipe_delete' recipe.id %}" class="btn btn-outline-danger">Видалити</a>
+            {% endif %}
+        </p>
+    {% endfor %}
+{% endblock %}

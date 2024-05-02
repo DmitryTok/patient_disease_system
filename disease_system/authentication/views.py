@@ -3,17 +3,18 @@ from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from authentication.forms import SignUpForm
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+
+from authentication.models import Patient
 
 
 @login_required(login_url='login')
 def profile(
-    request: HttpRequest, user_id: int
+    request: HttpRequest, patient_id: int
 ) -> HttpResponse | HttpResponseRedirect:
-    if request.user.id == user_id:
-        user = get_object_or_404(User, pk=user_id)
-        context = {'user': user}
+    if request.user.id == patient_id:
+        patient = get_object_or_404(Patient, pk=patient_id)
+        context = {'patient': patient}
         return render(request, 'authentication/profile.html', context)
     else:
         messages.error(
@@ -27,7 +28,19 @@ def register(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            birth_date = form.cleaned_data['birth_date']
+            height = form.cleaned_data['height']
+            weight = form.cleaned_data['weight']
+
+            Patient.objects.create(
+                id=user.id,
+                user=user,
+                birth_date=birth_date,
+                height=height,
+                weight=weight,
+            )
+
             username = form.cleaned_data['username']
             password = form.cleaned_data['password1']
             user = authenticate(username=username, password=password)

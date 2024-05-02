@@ -2,6 +2,9 @@
 {% load static %}
 {% block content %}
     <header>
-        <h2>{{ user.first_name }} {{ user.last_name }}</h2>
+        <h2>{{ patient.user.first_name }} {{ patient.user.last_name }}</h2>
+        <h2>Дата народження: {{ patient.birth_date|date:"d/m/Y" }}</h2>
+        <h2>Зріст: {{ patient.height }}</h2>
+        <h2>Вага: {{ patient.weight }}</h2>
     </header>
 {% endblock %}

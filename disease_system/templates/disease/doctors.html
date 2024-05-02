@@ -7,7 +7,17 @@
 
         <p>
             {% for doctor in doctors %}
-                <p>{{ doctor.first_name }} {{ doctor.last_name }}</p>
+                <p>
+                    {% if doctor.pic %}
+                        Фото: <img src="{{ doctor.pic.url }}" width=120 class="rounded" alt="{{ doctor.pic }}">
+                    {% endif %}
+                    <br>
+                    {{ doctor.first_name }} {{ doctor.last_name }}
+                    <br>
+                    Cпеціальність: {{ doctor.speciality }}
+                    <br>
+                    Установa: {{ doctor.institution }}
+                </p>
             {% endfor %}
         </p>
         <br>

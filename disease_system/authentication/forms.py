@@ -4,6 +4,26 @@ from django.contrib.auth.models import User
 
 
 class SignUpForm(UserCreationForm):
+    birth_date = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        widget=forms.DateInput(
+            attrs={'class': 'form-control', 'placeholder': 'день/місяць/рік'}
+        ),
+    )
+    height = forms.IntegerField(
+        min_value=100,
+        max_value=300,
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', 'placeholder': 'Зріст (cm)'}
+        ),
+    )
+    weight = forms.IntegerField(
+        min_value=3,
+        max_value=300,
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', 'placeholder': 'Вага (kg)'}
+        ),
+    )
     first_name = forms.CharField(
         max_length=100,
         widget=forms.TextInput(

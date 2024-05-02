@@ -1,5 +1,5 @@
 from django.db import models
-from authentication.models import Patient
+from django.contrib.auth.models import User
 
 
 class WorkPlace(models.Model):
@@ -60,7 +60,7 @@ class Doctor(models.Model):
 
 class Note(models.Model):
     user = models.ForeignKey(
-        Patient,
+        User,
         on_delete=models.CASCADE,
         null=False,
         blank=False,
@@ -81,3 +81,27 @@ class Note(models.Model):
         ordering = ('id',)
         verbose_name = 'Note'
         verbose_name_plural = 'Notes'
+
+    def __str__(self) -> str:
+        return (
+            f'{self.user.first_name} {self.user.last_name}: {self.diagnosis}'
+        )
+
+
+class Recipe(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=False, blank=False
+    )
+    pill = models.CharField(max_length=300)
+    date_discharge = models.DateField(editable=True)
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.CASCADE, null=False, blank=False
+    )
+
+    class Meta:
+        ordering = ('id',)
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
+
+    def __str__(self) -> str:
+        return f'{self.user.first_name} {self.user.last_name}: {self.pill}'

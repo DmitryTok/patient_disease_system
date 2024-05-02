@@ -6,7 +6,7 @@
     </header>
 
         <p>
-            {% for doctor in doctors %}
+            {% for doctor in page_obj %}
                 <p>
                     {% if doctor.pic %}
                         Фото: <img src="{{ doctor.pic.url }}" width=120 class="rounded" alt="{{ doctor.pic }}">
@@ -21,4 +21,5 @@
             {% endfor %}
         </p>
         <br>
+        {% include 'includes/pagination.html' %}
 {% endblock %}

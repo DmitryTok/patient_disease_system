@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <header>
+        <h2>Створити новий рецепт</h2>
+    </header>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ recipe_form.as_p }}
+        <button type="submit" class="btn btn-success">Створити</button>
+    </form>
+{% endblock %}

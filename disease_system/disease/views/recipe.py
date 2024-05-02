@@ -39,20 +39,23 @@ def recipe_edit(
 ) -> HttpResponse | HttpResponseRedirect:
     is_edit = True
     recipe = get_object_or_404(Recipe, pk=recipe_id)
-
-    if request.method == 'POST':
-        recipe_form = RecipeForm(request.POST, instance=recipe)
-        if recipe_form.is_valid():
-            recipe = recipe_form.save(commit=False)
-            recipe.user = request.user
-            recipe.doctor = recipe_form.cleaned_data['doctor']
-            messages.success(
-                request,
-                ('Ви успішно оновили рецепт!'),
-            )
-            return redirect('profile', request.user.id)
+    if request.user.id == recipe.user.id:
+        if request.method == 'POST':
+            recipe_form = RecipeForm(request.POST, instance=recipe)
+            if recipe_form.is_valid():
+                recipe = recipe_form.save(commit=False)
+                recipe.user = request.user
+                recipe.doctor = recipe_form.cleaned_data['doctor']
+                messages.success(
+                    request,
+                    ('Ви успішно оновили рецепт!'),
+                )
+                return redirect('profile', request.user.id)
+        else:
+            recipe_form = RecipeForm(instance=recipe)
     else:
-        recipe_form = RecipeForm(instance=recipe)
+        messages.error(request, 'Ви не можете редагувати iнщi записи!')
+        return redirect('profile', request.user.id)
     context = {'recipe_form': recipe_form, 'is_edit': is_edit}
     return render(request, 'disease/recipe/recipe_create.html', context)
 

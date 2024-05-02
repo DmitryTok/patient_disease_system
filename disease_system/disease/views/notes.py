@@ -14,11 +14,6 @@ def patient_notes(request: HttpRequest, user_id: int) -> HttpResponse:
 
 
 @login_required(login_url='login')
-def note_details(request: HttpRequest) -> HttpResponse:
-    pass
-
-
-@login_required(login_url='login')
 def note_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     note_form = NoteForm(request.POST or None)
     if request.method == 'POST':
@@ -42,20 +37,23 @@ def note_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
 def note_edit(request: HttpRequest, note_id: int) -> HttpResponse:
     is_edit = True
     note = get_object_or_404(Note, pk=note_id)
-
-    if request.method == 'POST':
-        note_form = NoteForm(request.POST, instance=note)
-        if note_form.is_valid():
-            note = note_form.save(commit=False)
-            note.user = request.user
-            note.doctor = note_form.cleaned_data['doctor']
-            messages.success(
-                request,
-                ('Ви успішно оновили запис!'),
-            )
-            return redirect('profile', request.user.id)
+    if request.user.id == note.user.id:
+        if request.method == 'POST' and request.user.id == note.user.id:
+            note_form = NoteForm(request.POST, instance=note)
+            if note_form.is_valid():
+                note = note_form.save(commit=False)
+                note.user = request.user
+                note.doctor = note_form.cleaned_data['doctor']
+                messages.success(
+                    request,
+                    ('Ви успішно оновили запис!'),
+                )
+                return redirect('profile', request.user.id)
+        else:
+            note_form = NoteForm(instance=note)
     else:
-        note_form = NoteForm(instance=note)
+        messages.error(request, 'Ви не можете редагувати iнщi записи!')
+        return redirect('profile', request.user.id)
     context = {'note_form': note_form, 'is_edit': is_edit}
     return render(request, 'disease/note/note_create.html', context)
 

@@ -60,7 +60,7 @@ def login_user(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
         if user is not None:
             login(request, user)
             messages.success(request, 'Ви увійшли в систему!')
-            return redirect('index')
+            return redirect('profile', request.user.id)
         else:
             messages.error(
                 request, ('Під час входу сталася помилка. Повторіть спробу!')
@@ -73,4 +73,4 @@ def login_user(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
 def logout_user(request: HttpRequest) -> HttpResponseRedirect:
     logout(request)
     messages.success(request, ('Ви успішно вийшли з системи!'))
-    return redirect('index')
+    return redirect('login')

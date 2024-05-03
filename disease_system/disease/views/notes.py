@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
 from disease.models import Note
 from django.contrib import messages
 from disease.forms import NoteForm
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from io import BytesIO
 
 
 @login_required(login_url='login')
@@ -26,7 +32,7 @@ def note_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
                 request,
                 ('Ви успішно створили новий запис!'),
             )
-        return redirect('index')
+        return redirect('profile', request.user.id)
     else:
         note_form = NoteForm()
     context = {'note_form': note_form}
@@ -38,7 +44,7 @@ def note_edit(request: HttpRequest, note_id: int) -> HttpResponse:
     is_edit = True
     note = get_object_or_404(Note, pk=note_id)
     if request.user.id == note.user.id:
-        if request.method == 'POST' and request.user.id == note.user.id:
+        if request.method == 'POST':
             note_form = NoteForm(request.POST, instance=note)
             if note_form.is_valid():
                 note = note_form.save(commit=False)
@@ -72,3 +78,41 @@ def note_delete(
             request, ('Ви не можете видалити запис іншого користувача!')
         )
         return redirect('profile', request.user.id)
+
+
+@login_required(login_url='login')
+def note_download(request: HttpRequest, note_id: int) -> FileResponse:
+    note_obj = Note.objects.get(id=note_id)
+
+    text = [
+        f"Прізвище: {note_obj.user.last_name}",
+        "",
+        f"Ім'я: {note_obj.user.first_name}",
+        "",
+        f"Cкарга: {note_obj.complaint}",
+        "",
+        f"Діагноз: {note_obj.diagnosis}",
+        "",
+        f"Лікування: {note_obj.treatment}",
+        "",
+        f"Доктор: {note_obj.doctor}",
+    ]
+
+    buffer = BytesIO()
+    pdf_canvas = canvas.Canvas(buffer, pagesize=letter)
+    pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
+
+    pdf_canvas.setFont("Arial", 12)
+
+    y_coordinate = 750
+
+    for line in text:
+        pdf_canvas.drawString(100, y_coordinate, line)
+        y_coordinate -= 20
+
+    pdf_canvas.save()
+
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Diagnos.pdf"'
+    return response

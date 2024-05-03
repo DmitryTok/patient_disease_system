@@ -13,6 +13,7 @@
             <b>Лікар</b>: {{ recipe.doctor }}
             <br>
             {% if request.user.id == recipe.user.id %}
+                <a href="{% url 'recipe_download' recipe.id %}" class="btn btn-outline-success">Завантажити</a>
                 <a href="{% url 'recipe_edit' recipe.id %}" class="btn btn-outline-warning">Редагувати</a>
                 <a href="{% url 'recipe_delete' recipe.id %}" class="btn btn-outline-danger">Видалити</a>
             {% endif %}

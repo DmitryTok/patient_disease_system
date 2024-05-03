@@ -1,6 +1,8 @@
 from django import forms
 from django.db.models import QuerySet
 import typing as t
+from django.core.exceptions import ValidationError
+import datetime
 
 from disease.models import Note, Recipe
 
@@ -43,7 +45,8 @@ class RecipeForm(forms.ModelForm):
         input_formats=['%d/%m/%Y'],
         label='Дата виписки рецепта',
         widget=forms.DateInput(
-            attrs={'class': 'form-control', 'placeholder': 'день/місяць/рік'}
+            format='%d/%m/%Y',
+            attrs={'class': 'form-control', 'placeholder': '(дд/мм/рррр)'},
         ),
     )
 
@@ -52,3 +55,9 @@ class RecipeForm(forms.ModelForm):
         fields = '__all__'
         exclude = ('user',)
         labels = {'doctor': 'Лікар'}
+
+    def clean_date_discharge(self):
+        date = self.cleaned_data['date_discharge']
+        if date.month > 12:
+            raise ValidationError("Месяц не может быть больше 12.")
+        return date

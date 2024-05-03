@@ -4,6 +4,11 @@ from django.contrib.auth.decorators import login_required
 from disease.models import Recipe
 from django.contrib import messages
 from disease.forms import RecipeForm
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from io import BytesIO
 
 
 @login_required(login_url='login')
@@ -15,20 +20,18 @@ def patient_recipes(request: HttpRequest, user_id: int) -> HttpResponse:
 
 @login_required(login_url='login')
 def recipe_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
-    recipe_form = RecipeForm(request.POST or None)
     if request.method == 'POST':
+        recipe_form = RecipeForm(request.POST)
         if recipe_form.is_valid():
             recipe = recipe_form.save(commit=False)
             recipe.user = request.user
             recipe.doctor = recipe_form.cleaned_data['doctor']
             recipe.save()
-            messages.success(
-                request,
-                ('Ви успішно створили новий рецепт!'),
-            )
-        return redirect('profile', request.user.id)
+            messages.success(request, 'Ви успішно створили новий рецепт!')
+            return redirect('profile', request.user.id)
     else:
         recipe_form = RecipeForm()
+
     context = {'recipe_form': recipe_form}
     return render(request, 'disease/recipe/recipe_create.html', context)
 
@@ -72,3 +75,39 @@ def recipe_delete(request: HttpRequest, recipe_id: int) -> HttpResponse:
             request, ('Ви не можете видалити рецепт іншого користувача!')
         )
         return redirect('profile', request.user.id)
+
+
+@login_required(login_url='login')
+def recipe_download(request: HttpRequest, recipe_id: int) -> HttpResponse:
+    recipe_obj = Recipe.objects.get(id=recipe_id)
+
+    text = [
+        f"Прізвище: {recipe_obj.user.last_name}",
+        "",
+        f"Ім'я: {recipe_obj.user.first_name}",
+        "",
+        f"Лiки: {recipe_obj.pill}",
+        "",
+        f"Дата виписки рецепта: {recipe_obj.date_discharge.strftime('%d/%m/%Y')}",
+        "",
+        f"Доктор: {recipe_obj.doctor}",
+    ]
+
+    buffer = BytesIO()
+    pdf_canvas = canvas.Canvas(buffer, pagesize=letter)
+    pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
+
+    pdf_canvas.setFont("Arial", 12)
+
+    y_coordinate = 750
+
+    for line in text:
+        pdf_canvas.drawString(100, y_coordinate, line)
+        y_coordinate -= 20
+
+    pdf_canvas.save()
+
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Recipe.pdf"'
+    return response
